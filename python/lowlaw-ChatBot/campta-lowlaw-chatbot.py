@@ -1,3 +1,4 @@
+# 이게 경희캠타 final chatbot
 import streamlit as st
 from sentence_transformers import SentenceTransformer, util
 from elasticsearch import Elasticsearch
@@ -22,8 +23,11 @@ def load_image(img_file): # st 이미지 불러오기 함수
 
 model = cached_model() # sentenceBERT 모델
 
-logo_file = '/Users/wisdom/Documents/lowlaw-ChatBot/lowlaw.png' # 로고 이미지 파일경로
+logo_file = '../image/lowlaw.png' # 로고 이미지 파일경로
 logo_img = load_image(logo_file) # 로고 이미지 가져옴
+
+sumung_file = '../image/lowlaw_sumung.png' # 수뭉이 이미지 파일경로
+sumung_img = load_image(sumung_file) # 수뭉이 이미지 가져옴
 
 # sidebar
 with st.sidebar:
