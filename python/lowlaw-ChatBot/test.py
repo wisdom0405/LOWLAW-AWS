@@ -37,10 +37,10 @@ with st.chat_message("assistant"):
     st.write("내가 어떤 상황인지 파악하고 어떻게 해결할지 궁금하다면 LOWLAW와 대화하면서 해결해보세요")
 
 # 사용자에게 문장 입력 받기
-text = st.chat_input(placeholder = "어떤 상황인지 설명해주세요!")
+user_input = st.chat_input(placeholder = "어떤 상황인지 설명해주세요!")
 
 # 문장벡터 계산
-embeddings = model.encode([text])[0] if text is not None else None
+embeddings = model.encode([user_input])[0] if user_input is not None else None
 
 # Elasticsearch에서 embedding 필드 값 검색
 query = {
@@ -50,13 +50,13 @@ query = {
     "_source": ["question","answer","law", "prec", "embedding"]
 }
 
-response = es.search(index="legal_qa", body=query, size=10)
+response = es.search(index="legal_qa", body=query, size=100)
 
 # 가장 높은 코사인 유사도 값 초기화
 max_cosine_similarity = -1
 best_answer = ""
 
-if text : # 사용자가 text를 입력하였다면
+if user_input : # 사용자가 user_input를 입력하였다면
     # 각 문서와의 코사인 유사도 비교
     for hit in response["hits"]["hits"]:
         doc_embedding = hit["_source"]["embedding"]
@@ -72,8 +72,8 @@ if text : # 사용자가 text를 입력하였다면
             related_law = hit["_source"].get("law", None) # 필드에 데이터가 존재하면 law 값을 가져오고 존재하지 않으면 None 반환
             related_prec = hit["_source"].get("prec", None)
         
-        st.session_state.past.append(text) # 사용자 text append
-        st.session_state.generated.append(best_answer) # 가장 유사한 답변 append
+    st.session_state.past.append(user_input) # 사용자 user_input append
+    st.session_state.generated.append(best_answer) # 가장 유사한 답변 append
 
 
 for i in range(len(st.session_state['past'])): # 메세지 띄우기

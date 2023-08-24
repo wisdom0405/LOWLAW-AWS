@@ -28,7 +28,7 @@ query = {
     "_source": ["question","answer","embedding","law","prec"]
 }
 
-response = es.search(index="legal_qa", body=query, size=1000) # 반환할 검색 결과의 개수를 지정 (최대 1000개)
+response = es.search(index="legal_qa", body=query, size=100) # 반환할 검색 결과의 개수를 지정 (최대 1000개)
 
 # 초기화
 max_cosine_similarity = -1
