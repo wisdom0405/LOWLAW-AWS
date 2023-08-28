@@ -20,6 +20,12 @@ def cached_model():
 def load_image(img_file): # st 이미지 불러오기 함수
     img = Image.open(img_file)
     return img
+def button_law() :
+    print("law_functionOK")
+    st.session_state.messages.append({"role" : "assistant", "content" : "뀨"}) 
+def button_prec() :
+    print("prec_functionOK")
+    st.session_state.messages.append({"role" : "assistant", "content" : "퓨"}) 
 
 model = cached_model() # sentenceBERT 모델
 
@@ -73,7 +79,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-
+butt = False
 if user_input : # 사용자가 user_input를 입력하였다면
     # 사용자의 user_input chat message에 띄워주기
     st.chat_message("user").markdown(user_input)
@@ -98,22 +104,25 @@ if user_input : # 사용자가 user_input를 입력하였다면
 
     if max_cosine_similarity > 0.7 : # max_cosine_similarity 값이 0.7 이상이면 해당 답변 출력
         # assistant의 답변 chat message에 띄워주기    
+        print("cosine_ok")
         with st.chat_message("assistant"):
             st.markdown(best_answer)
             if related_law: # 참조법령이 있다면 related_law 출력
                 st.markdown(":red[참조법령] :female-judge:")
-                st.markdown(related_law)   
+                if st.button(related_law,on_click=lambda:button_law()):
+                    print("buttonOK")
             if related_prec: # 참조판례 있다면 related_prec 출력
                 st.markdown(":red[참조판례] :scales:")
-                st.markdown(related_prec)
-        # assistant의 답변 chat history에 append 하기
+                if st.button(related_prec,on_click = lambda:button_prec()):
+                    print("prec_buttonOK")
         st.session_state.messages.append({"role" : "assistant", "content" : best_answer}) # 가장 유사한 답변 append
+
     else:
         # assistant의 답변 chat message에 띄워주기 (0.7 이하일 때)
         with st.chat_message("assistant"):
             st.markdown("질문에 대한 답변을 찾을 수 없어요:cry: 상황에 대해서 정확히 입력해주세요!")
         st.session_state.messages.append({"role" : "assistant", "content" : "질문에 대한 답변을 찾을 수 없어요:cry: 상황에 대해서 정확히 입력해주세요!" }) # 가장 유사한 답변 append
-        
+
     #st.session_state.messages.append({"role" : "assistant", "content" : related_law}) # 가장 유사한 답변의 참조법령 append
     #st.session_state.messages.append({"role" : "assistant", "content" : related_prec}) # 가장 유사한 답변의 참조판례 append
 
