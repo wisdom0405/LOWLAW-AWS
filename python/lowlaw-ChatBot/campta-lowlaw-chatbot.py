@@ -21,10 +21,8 @@ def load_image(img_file): # st 이미지 불러오기 함수
     img = Image.open(img_file)
     return img
 def button_law() :
-    print("law_functionOK")
     st.session_state.messages.append({"role" : "assistant", "content" : "뀨"}) 
 def button_prec() :
-    print("prec_functionOK")
     st.session_state.messages.append({"role" : "assistant", "content" : "퓨"}) 
 
 model = cached_model() # sentenceBERT 모델
@@ -64,11 +62,7 @@ query = {
     "_source": ["question","answer","law", "prec", "embedding"]
 }
 
-response = es.search(index="legal_qa", body=query, size=100)
-
-# 가장 높은 코사인 유사도 값 초기화
-max_cosine_similarity = -1
-best_answer = ""
+response = es.search(index="legal_qa", body=query, size=7000)
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -82,11 +76,12 @@ for message in st.session_state.messages:
 butt = False
 if user_input : # 사용자가 user_input를 입력하였다면
     # 사용자의 user_input chat message에 띄워주기
+    max_cosine_similarity = -1
+    best_answer = ""
     st.chat_message("user").markdown(user_input)
 
     # 사용자의 user_input을 chat history에 append
     st.session_state.messages.append({"role" : "user", "content" : user_input}) 
-
     # 각 문서와의 코사인 유사도 비교
     for hit in response["hits"]["hits"]:
         doc_embedding = hit["_source"]["embedding"]
@@ -104,17 +99,18 @@ if user_input : # 사용자가 user_input를 입력하였다면
 
     if max_cosine_similarity > 0.7 : # max_cosine_similarity 값이 0.7 이상이면 해당 답변 출력
         # assistant의 답변 chat message에 띄워주기    
-        print("cosine_ok")
         with st.chat_message("assistant"):
             st.markdown(best_answer)
             if related_law: # 참조법령이 있다면 related_law 출력
+                related_law_list = related_law.split(",")  # ','로 구분하여 리스트로 변환
                 st.markdown(":red[참조법령] :female-judge:")
-                if st.button(related_law,on_click=lambda:button_law()):
-                    print("buttonOK")
+                for law in related_law_list: 
+                    st.button(law,on_click=lambda:button_law())
             if related_prec: # 참조판례 있다면 related_prec 출력
+                related_prec_list = related_prec.split(',')  # ','로 구분하여 리스트로 변환
                 st.markdown(":red[참조판례] :scales:")
-                if st.button(related_prec,on_click = lambda:button_prec()):
-                    print("prec_buttonOK")
+                for prec in related_prec_list: # 참조판례 리스트 안에 있는 내용 각각 버튼으로 출력  
+                    st.button(prec,on_click = lambda:button_prec())
         st.session_state.messages.append({"role" : "assistant", "content" : best_answer}) # 가장 유사한 답변 append
 
     else:
@@ -125,4 +121,3 @@ if user_input : # 사용자가 user_input를 입력하였다면
 
     #st.session_state.messages.append({"role" : "assistant", "content" : related_law}) # 가장 유사한 답변의 참조법령 append
     #st.session_state.messages.append({"role" : "assistant", "content" : related_prec}) # 가장 유사한 답변의 참조판례 append
-
