@@ -1,3 +1,4 @@
+# 이건 옛날 코드
 import streamlit as st
 from streamlit_chat import message
 from sentence_transformers import SentenceTransformer, util

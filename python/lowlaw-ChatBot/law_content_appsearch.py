@@ -67,8 +67,13 @@ if st.button("검색"):
                     # 판례내용은 expander로 처리
                     expander = st.expander(f"{field.capitalize()}")
                     expander.write(field_value, unsafe_allow_html=True)
+                elif field == '참조조문':
+                    field_value = field_value.replace('\n', '')  # <br> 태그로 줄바꿈 처리 
+                    st.write(f"{field.capitalize()}:")
+                    st.markdown(field_value, unsafe_allow_html=True)
                 else:
                     st.write(f"{field.capitalize()}: {field_value}")
+                    
         
         st.write(f"Score: {score}")
         st.write("-" * 40)
