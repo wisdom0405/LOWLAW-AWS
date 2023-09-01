@@ -31,12 +31,6 @@ def load_image(img_file): # st 이미지 불러오기 함수
     img = Image.open(img_file)
     return img
 
-def highlight_search_terms(text, terms):
-    highlighted_text = text
-    for term in terms:
-        highlighted_text = highlighted_text.replace(term, f"<span style='background-color: yellow;'>{term}</span>")
-    return highlighted_text
-
 def law_search(data):
     engine_name = 'law-content'
     # 검색 옵션 설정 (score 점수 내림차순 정렬, 상위 1개 결과)
@@ -107,11 +101,11 @@ def prec_search(data):
                         result_string += f"{formatted_field_name}: {field_value}\n"
                 elif field in ['판시사항', '판결요지']:
                     if field_value:
-                        highlighted_value = highlight_search_terms(field_value, search_query.split())
+                        highlighted_value = f"{field_value}"
                         result_string += f"\n{formatted_field_name}:\n\n{highlighted_value}\n\n"
                 elif field == '판례내용':
                     if field_value:
-                        highlighted_value = highlight_search_terms(field_value, search_query.split())
+                        highlighted_value = f"{field_value}"
                         result_string += f"{formatted_field_name}:\n\n{highlighted_value}\n\n"
                 elif field == '참조조문' or field == '참조판례':
                     references = field_value.split('\n')
