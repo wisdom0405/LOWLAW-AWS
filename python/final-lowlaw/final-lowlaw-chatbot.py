@@ -76,7 +76,6 @@ def prec_search(data): # App Search 에서 참조판례 찾기
         "sort": [{"_score": "desc"}],  # score 점수 내림차순 정렬
         "page": {"size": 1, "current": 1}  # 상위 3개 결과
     }
-
     # search
     search_query = data
     search_result = client.search(engine_name, search_query, search_options)
@@ -84,38 +83,63 @@ def prec_search(data): # App Search 에서 참조판례 찾기
     # 결과 문자열 초기화
     result_string = ""
 
-    # 결과 문자열 생성
     for result in search_result['results']:
         score = result['_meta']['score']
-        
+
         # 필요한 필드들을 함께 출력
         fields_to_print = ['사건명', '사건번호', '선고일자', '법원명', '사건종류명', '판시사항', '판결요지', '참조조문', '참조판례', '판례내용']
+        # 결과 문자열 생성
         for field in fields_to_print:
             if field in result:
                 field_value = result[field]['raw']
-                formatted_field_name = f"**{field}**" # 필드명 굵은 글씨
+                formatted_field_name = f"**{field}**"  # 필드명 굵은 글씨
                 if not field_value:
                     continue
                 if field == '선고일자':
                     try:
                         date_value = datetime.datetime.strptime(str(int(field_value)), '%Y%m%d').strftime('%Y.%m.%d')
-                        result_string += f"\n{formatted_field_name}: {date_value}\n"
+                        result_string += f"{formatted_field_name}: {date_value}\n"
                     except ValueError:
                         result_string += f"{formatted_field_name}: {field_value}\n"
-                elif field in ['판시사항', '판결요지']:
+                elif field in ['법원명', '사건종류명']:
                     if field_value:
+                        result_string += f"{formatted_field_name}: {field_value}\n"
+                elif field == '판시사항':
+                    if field_value:
+                        field_value = field_value.replace('[', '\n[')  # '['가 나오면 '[' 앞에 줄바꿈 추가
+                        result_string += "\n\n"+ "-" * 40 + "\n"
                         result_string += f"\n{formatted_field_name}:\n\n{field_value}\n\n"
+                        result_string += "-" * 40 + "\n"
+                elif field == '판결요지':
+                    if field_value:
+                        field_value = field_value.replace('[', '\n[')  # '['가 나오면 '[' 앞에 줄바꿈 추가
+                        result_string += f"\n{formatted_field_name}:\n\n{field_value}\n\n"
+                        result_string += "-" * 40 + "\n"
+                elif field == '참조조문':
+                    if field_value:
+                        field_value = field_value.replace('/', '\n\n')  # '/'를 기준으로 줄바꿈 후 '/' 삭제
+                        result_string += f"\n{formatted_field_name}:\n\n{field_value}\n\n"
+                        result_string += "-" * 40 + "\n"
+                elif field == '참조판례':
+                    if field_value:
+                        field_value = field_value.replace('/', '\n\n')  # '/'를 기준으로 줄바꿈 후 '/' 삭제
+                        result_string += f"\n{formatted_field_name}:\n\n{field_value}\n\n"
+                        result_string += "-" * 40 + "\n"
                 elif field == '판례내용':
                     if field_value:
+                        field_value = field_value.replace('【', '\n\n【')  # '【'가 나오면 '【' 앞에 줄바꿈 추가
                         result_string += f"{formatted_field_name}:\n\n{field_value}\n\n"
-                elif field == '참조조문' or field == '참조판례':
-                    references = field_value.split('\n')
-                    formatted_references = ' '.join([ref.strip() for ref in references])
-                    result_string += f"{formatted_field_name}:\n\n{formatted_references}\n\n"
+                        result_string += "-" * 40 + "\n"
                 else:
-                    result_string += f"{formatted_field_name}: {field_value}\n"
-
-        result_string += "-" * 40 + "\n"
+                    if field == '사건명':
+                        result_string += f"{formatted_field_name} {field_value}\n\n"  # 사건명 출력 시 콜론을 출력하지 않음
+                        result_string += "-" * 40 + "\n"
+                    elif field == '사건번호':
+                        result_string += f"{formatted_field_name}: {field_value}\n\n"  # 사건번호 출력 시 콜론을 출력함
+                        result_string += "-" * 40 + "\n"
+                    else:
+                        result_string += f"{formatted_field_name}: {field_value}\n"
+                        result_string += "-" * 40 + "\n"
 
     return result_string
 
@@ -236,6 +260,3 @@ if user_input : # 사용자가 user_input를 입력하였다면
         with st.chat_message("assistant"):
             st.markdown("질문에 대한 답변을 찾을 수 없어요:cry: 상황에 대해서 정확히 입력해주세요!") 
         st.session_state.messages.append({"role" : "assistant", "content" : "질문에 대한 답변을 찾을 수 없어요:cry: 상황에 대해서 정확히 입력해주세요!" }) # assistant의 chat history에 append 하기
-        
- 
-
