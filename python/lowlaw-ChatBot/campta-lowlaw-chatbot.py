@@ -3,6 +3,9 @@ import streamlit as st
 from sentence_transformers import SentenceTransformer, util
 from elasticsearch import Elasticsearch
 from PIL import Image
+from elastic_app_search import Client
+import json
+import datetime
 
 # Elasticsearch 클라이언트 설정
 es_cloud_id = "lowlaw:YXAtbm9ydGhlYXN0LTIuYXdzLmVsYXN0aWMtY2xvdWQuY29tOjQ0MyQ2YzNmMjA4MmNiMzk0M2YxYTBiZWI0ZDY2M2JmM2VlZCRjZTA2NGZhNjFiMmI0N2Y0ODgzMjY0Y2FlMzVlZDgxZQ=="
@@ -10,6 +13,13 @@ es_username = "elastic"
 es_pw = "LWkW2eILoZYZylsDDThLaCKY"
 
 es = Elasticsearch(cloud_id=es_cloud_id, basic_auth=(es_username, es_pw))
+
+# Appsearch 클라이언트 설정
+client = Client(
+    base_endpoint="lowlaw.ent.ap-northeast-2.aws.elastic-cloud.com/api/as/v1",
+    api_key="private-egnzqo7tt7fd6fngz13mmox9",
+    use_https=True
+)
 
 # SentenceTransformer 모델 로드
 @st.cache_data() # st 캐싱 (로컬캐시에 저장)
@@ -20,10 +30,108 @@ def cached_model():
 def load_image(img_file): # st 이미지 불러오기 함수
     img = Image.open(img_file)
     return img
-def button_law() :
-    st.session_state.messages.append({"role" : "assistant", "content" : "뀨"}) 
+
+def highlight_search_terms(text, terms):
+    highlighted_text = text
+    for term in terms:
+        highlighted_text = highlighted_text.replace(term, f"<span style='background-color: yellow;'>{term}</span>")
+    return highlighted_text
+
+def law_search(data):
+    engine_name = 'law-content'
+    # 검색 옵션 설정 (score 점수 내림차순 정렬, 상위 1개 결과)
+    search_options = {
+        "sort": [{"_score": "desc"}],  # score 점수 내림차순 정렬
+        "page": {"size": 1, "current": 1}  # 상위 1개 결과 (페이지 크기와 현재 페이지 번호를 지정)
+    }
+
+    # 결과를 문자열로 저장
+    result_string = ""
+    
+    # search
+    search_query = data
+    search_result = client.search(engine_name, search_query, search_options)
+
+    # 필요한 필드들을 함께 저장
+    for result in search_result['results']:
+        score = result['_meta']['score']
+
+        # 조항, 호, 목 필드 값이 있는 경우에만 'title' 변수 생성
+        title_fields = [result[field]['raw'] for field in ['law', 'jo', 'hang', 'ho', 'mok'] if field in result and result[field]['raw']]
+        if title_fields:
+            title = " ".join(title_fields)
+            title = f"**{title}**"
+            content_fields = [result[field]['raw'] for field in ['jo_content', 'hang_content', 'ho_content', 'mok_content'] if field in result and result[field]['raw']]
+            if content_fields:
+                content = "\n\n".join(content_fields) + "\n"
+        
+        # result_string에 추가
+        result_string += f"{title}\n\n"
+        result_string += f"\n\n{content}\n\n"
+        result_string += "-" * 40 + "\n"  # 구분선 추가
+    
+    return result_string
+
+def prec_search(data):
+    engine_name = 'prec-search'
+    # 검색 옵션 설정 (score 점수 내림차순 정렬, 상위 1개 결과)
+    search_options = {
+        "sort": [{"_score": "desc"}],  # score 점수 내림차순 정렬
+        "page": {"size": 1, "current": 1}  # 상위 3개 결과
+    }
+
+    # search
+    search_query = data
+    search_result = client.search(engine_name, search_query, search_options)
+
+    # 결과 문자열 초기화
+    result_string = ""
+
+    # 결과 문자열 생성
+    for result in search_result['results']:
+        score = result['_meta']['score']
+        
+        # 필요한 필드들을 함께 출력
+        fields_to_print = ['사건명', '사건번호', '선고일자', '법원명', '사건종류명', '판시사항', '판결요지', '참조조문', '참조판례', '판례내용']
+        for field in fields_to_print:
+            if field in result:
+                field_value = result[field]['raw']
+                formatted_field_name = f"**{field.capitalize()}**"
+                if not field_value:
+                    continue
+                if field == '선고일자':
+                    try:
+                        date_value = datetime.datetime.strptime(str(int(field_value)), '%Y%m%d').strftime('%Y.%m.%d')
+                        result_string += f"\n{formatted_field_name}: {date_value}\n"
+                    except ValueError:
+                        result_string += f"{formatted_field_name}: {field_value}\n"
+                elif field in ['판시사항', '판결요지']:
+                    if field_value:
+                        highlighted_value = highlight_search_terms(field_value, search_query.split())
+                        result_string += f"\n{formatted_field_name}:\n\n{highlighted_value}\n\n"
+                elif field == '판례내용':
+                    if field_value:
+                        highlighted_value = highlight_search_terms(field_value, search_query.split())
+                        result_string += f"{formatted_field_name}:\n\n{highlighted_value}\n\n"
+                elif field == '참조조문' or field == '참조판례':
+                    references = field_value.split('\n')
+                    formatted_references = ' '.join([ref.strip() for ref in references])
+                    result_string += f"{formatted_field_name}:\n\n{formatted_references}\n\n"
+                else:
+                    result_string += f"{formatted_field_name}: {field_value}\n"
+
+        result_string += "-" * 40 + "\n"
+
+    return result_string
+
+def button_law():
+    result1=law_search(law)
+    st.session_state.messages.append({"role" : "assistant", "content": result1})
+
+
 def button_prec() :
-    st.session_state.messages.append({"role" : "assistant", "content" : "퓨"}) 
+    result2=prec_search(prec)
+    st.session_state.messages.append({"role" : "assistant", "content" : result2}) 
 
 model = cached_model() # sentenceBERT 모델
 
