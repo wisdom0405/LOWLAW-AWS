@@ -64,11 +64,15 @@ def law_search(data):
             content_fields = [result[field]['raw'] for field in ['jo_content', 'hang_content', 'ho_content', 'mok_content'] if field in result and result[field]['raw']]
             if content_fields:
                 content = "\n\n".join(content_fields) + "\n"
+        
+        # '법령명:'과 '법령내용:'을 강조하는 텍스트 생성
+        highlighted_title_text = "**법령명**"
+        highlighted_content_text = "**법령내용**"
 
-        # 'title' 변수도 result_string에 추가
-        result_string += f"법령명:\n\n {title}\n\n"
-        result_string += f"법령내용:\n\n {content}\n\n"
-        result_string += "-" * 40 + "\n"  # 구분선 추가      
+        # result_string에 추가
+        result_string += f"{highlighted_title_text}:\n\n {title}\n\n"
+        result_string += f"{highlighted_content_text}:\n\n {content}\n\n"
+        result_string += "-" * 40 + "\n"  # 구분선 추가
     
     return result_string
 
@@ -126,7 +130,7 @@ def prec_search(data):
 
 def button_law():
     result1=law_search(law)
-    st.session_state.messages.append({"role": "assistant", "content": result1})
+    st.session_state.messages.append({"role" : "assistant", "content": result1})
 
 
 def button_prec() :
