@@ -60,18 +60,14 @@ def law_search(data):
         title_fields = [result[field]['raw'] for field in ['law', 'jo', 'hang', 'ho', 'mok'] if field in result and result[field]['raw']]
         if title_fields:
             title = " ".join(title_fields)
-            
+            title = f"**{title}**"
             content_fields = [result[field]['raw'] for field in ['jo_content', 'hang_content', 'ho_content', 'mok_content'] if field in result and result[field]['raw']]
             if content_fields:
                 content = "\n\n".join(content_fields) + "\n"
         
-        # '법령명:'과 '법령내용:'을 강조하는 텍스트 생성
-        highlighted_title_text = "**법령명**"
-        highlighted_content_text = "**법령내용**"
-
         # result_string에 추가
-        result_string += f"{highlighted_title_text}:\n\n {title}\n\n"
-        result_string += f"{highlighted_content_text}:\n\n {content}\n\n"
+        result_string += f"{title}\n\n"
+        result_string += f"\n\n{content}\n\n"
         result_string += "-" * 40 + "\n"  # 구분선 추가
     
     return result_string
