@@ -1,6 +1,8 @@
 import streamlit as st
 from elastic_app_search import Client
 import datetime
+from PIL import Image
+import re
 
 # Create App Search client
 client = Client(
@@ -11,6 +13,13 @@ client = Client(
 engine_name_1 = 'law-content'
 engine_name_2 = 'prec-content'
 
+# Function to align text to justify content
+def align_text(text):
+    return f"<div style='text-align: justify;'>{text}</div>"
+
+def highlight_match(match):
+        return f"<span style='color:red;'>{match}</span>"
+
 # Function to highlight search terms in text
 def highlight_search_terms(text, terms):
     highlighted_text = text
@@ -18,14 +27,36 @@ def highlight_search_terms(text, terms):
         highlighted_text = highlighted_text.replace(term, f"<span style='background-color: yellow;'>{term}</span>")
     return highlighted_text
 
+def load_image(img_file): # st 이미지 불러오기 함수
+    img = Image.open(img_file)
+    return img
+
+logo_file = '../image/lowlaw.png' # 로고 이미지 파일경로
+logo_img = load_image(logo_file) # 로고 이미지 가져옴
+
+# sidebar
+with st.sidebar:
+    st.image(logo_img, width = 300, output_format = "PNG")
+    st.title("임대차 분쟁 법률 조언 서비스")
+    st.divider()
+
 # Streamlit 애플리케이션 시작
-st.title("LOWLAW :mag_right: 검색엔진")
+st.header("LOWLAW :mag_right: 검색엔진")
+
+st.write("LOWLAW에 오신 것을 환영합니다👋 이곳에서 법명이나 키워드로 검색을 도와드려요 🧑‍🎓")
+
+col1, col2 = st.columns([4, 1])
 
 # 사용자로부터 검색어 입력 받기
-search_query = st.text_input(label="", placeholder="검색어를 입력하세요.")
+with col1:
+    search_query = st.text_input(label="", placeholder="❓ 검색어를 입력하세요.", label_visibility="collapsed")
 
 # 검색 버튼 클릭 시 동작
-if st.button("검색"):
+with col2:
+    if st.button("검색"):
+        pass
+
+if search_query:
     # 검색 옵션 설정 (score 점수 내림차순 정렬, 상위 3개 결과)
     search_options = {
         "sort": [{"_score": "desc"}],  # score 점수 내림차순 정렬
@@ -42,23 +73,31 @@ if st.button("검색"):
     st.subheader("법령 :book:")
     for result in search_result_engine_1['results']:
         score = result['_meta']['score']
+        law_name = result.get('law', {}).get('raw', '')  # Get the law name from the result
+        if law_name:
+            highlighted_law_name = highlight_search_terms(law_name, search_query.split())
+            st.write(f"**{highlighted_law_name}**", unsafe_allow_html=True)  # Apply highlight to law name
         
-        # 필요한 필드들을 '법명'으로 한 번에 출력
-        fields_to_print = ['law', 'jo', 'hang', 'ho', 'mok', 'jo_content', 'hang_content', 'ho_content', 'mok_content']
-        field_values = [result[field]['raw'] for field in fields_to_print if field in result and field != 'jo_content' and field != 'hang_content' and field != 'ho_content' and field != 'mok_content']
-        st.markdown(f"**법명:** {' '.join(field_values)}")
-        
-        combined_content = ""
-        content_fields = ['jo_content', 'hang_content', 'ho_content', 'mok_content']
-        for content_field in content_fields:
-            if content_field in result:
-                highlighted_content = highlight_search_terms(result[content_field]['raw'], search_query.split())
-                combined_content += highlighted_content + " "
-    
-        if combined_content:
-            st.markdown(f"**내용:** {combined_content}", unsafe_allow_html=True)
-        
-        st.write("-" * 40)
+            # Combine jo, hang, ho, mok fields and display using write
+            combined_fields = ' '.join([result[field]['raw'] for field in ['jo', 'hang', 'ho', 'mok'] if field in result])
+            highlighted_combined_fields = highlight_search_terms(combined_fields, search_query.split())
+            st.write(f"**{highlighted_combined_fields}**", unsafe_allow_html=True)  # Apply highlight to combined fields
+
+            combined_content = ""
+            content_fields = ['jo_content', 'hang_content', 'ho_content', 'mok_content']
+            for content_field in content_fields:
+                if content_field in result:
+                    content = result[content_field]['raw']
+                    # Use regular expression to find '제n조' pattern and its content
+                    pattern = r'제(\d+)조\(([^)]+)\)'
+                    replaced_content = re.sub(pattern, lambda match: f'제{match.group(1)}조({highlight_match(match.group(2))})', content)
+                    combined_content += replaced_content + " "
+         
+            if combined_content:
+                highlighted_combined_content = highlight_search_terms(combined_content, search_query.split())
+                st.write(highlighted_combined_content, unsafe_allow_html=True)
+            
+            st.write("-" * 40)
 
     # Display results for Engine 2
     st.subheader("판례 :scales:")
@@ -73,7 +112,10 @@ if st.button("검색"):
                 formatted_field_name = f"**{field.capitalize()}**"  # Adding bold formatting to field name
                 if not field_value:  # If field value is empty
                     continue
-                if field == '선고일자':
+                if field in ['사건명', '사건번호']:
+                    highlighted_field_value = highlight_match(field_value)
+                    st.write(f"{formatted_field_name}: {highlighted_field_value}", unsafe_allow_html=True)
+                elif field == '선고일자':
                     # 선고일자를 datetime 형식으로 변환하여 원하는 포맷으로 출력
                     try:
                         date_value = datetime.datetime.strptime(str(int(field_value)), '%Y%m%d').strftime('%Y.%m.%d')
@@ -99,6 +141,7 @@ if st.button("검색"):
                     formatted_references = ' '.join([ref.strip() for ref in references])
                     # 슬래시 제거 코드 추가
                     formatted_references = formatted_references.replace('/', ' \n\n')
+                    aligned_value = align_text(highlighted_value)  # Applying text alignment
                     st.write(f"{formatted_field_name}:\n\n{formatted_references}")
                 else:
                     st.write(f"{formatted_field_name}: {field_value}")
