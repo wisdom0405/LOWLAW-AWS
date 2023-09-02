@@ -156,22 +156,15 @@ model = cached_model() # sentenceBERT 모델
 logo_file = '../image/lowlaw.png' # 로고 이미지 파일경로
 logo_img = load_image(logo_file) # 로고 이미지 가져옴
 
-# sidebar
+# 챗봇 sidebar
 with st.sidebar:
-    st.image(logo_img, width = 300, output_format = "PNG")
-    st.markdown('<p style="text-align: center; font-size: 25px;"><strong>임대차 분쟁 법률 조언 서비스</strong></p>', unsafe_allow_html=True)
-    st.divider()
-    # 메뉴바
-    choice = option_menu("Menu",["LawBot","LOWLAW Search"],
-                         icons = ["bi bi-robot","bi bi-search"],
-                         menu_icon = "bi bi-app-indicator", default_index = 0, #default_index = 처음에 보여줄 페이지 인덱스 번호
-                         styles = {
-                            "container": {"padding": "4!important", "background-color": "#fafafa"},
-                            "icon": {"color": "black", "font-size": "25px"},
-                            "nav-link": {"font-size": "20px", "text-align": "left", "margin":"0px", "--hover-color": "#fafafa"},
-                            "nav-link-selected": {"background-color": "#f0a543"},          
-                         }#css설정
-                         )
+    with st.expander("📌 LawBot 에게 더 정확한 답변 받는 Tip!"):
+        st.markdown("📍'나' 혹은 '집주인'이라는 말보다 **임대인,임차인**으로 작성하여 물어보세요! ")
+        st.caption("eg. 임차 주택의 변기를 수리하였습니다. 그 수리비를 임대인에게 청구할 수 있나요.")
+        st.markdown("📍 개인적인 조건을 나열하는 것보다 객관적인 상황을 설명해 주세요!")
+        st.caption("eg. 세입자가 월세를 미루고 있습니다. 월세를 계속 미룰 시 이자를 청구하겠다는 내용증명을 보내려고 합니다. 정말로 이자를 청구할 수 있을까요.")
+        st.markdown("📍 어려운 법률용어도 질문가능!")
+        st.caption("eg. 근저당권이란? 직권말소란? ")
 
 # Streamlit 앱 시작
 st.markdown('<p style="text-align: center; font-size: 40px;"><strong>🤖 LAWBOT ⚖️</strong></p>', unsafe_allow_html=True)
