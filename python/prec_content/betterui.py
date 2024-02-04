@@ -6,8 +6,8 @@ import re
 
 # Create App Search client
 client = Client(
-    base_endpoint="lowlaw.ent.ap-northeast-2.aws.elastic-cloud.com/api/as/v1",
-    api_key="private-egnzqo7tt7fd6fngz13mmox9",
+    base_endpoint="",
+    api_key="",
     use_https=True
 )
 engine_name_1 = 'law-content'
