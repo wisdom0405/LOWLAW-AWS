@@ -8,16 +8,16 @@ import json
 import datetime
 
 # Elasticsearch 클라이언트 설정
-es_cloud_id = "lowlaw:YXAtbm9ydGhlYXN0LTIuYXdzLmVsYXN0aWMtY2xvdWQuY29tOjQ0MyQ2YzNmMjA4MmNiMzk0M2YxYTBiZWI0ZDY2M2JmM2VlZCRjZTA2NGZhNjFiMmI0N2Y0ODgzMjY0Y2FlMzVlZDgxZQ=="
-es_username = "elastic"
-es_pw = "LWkW2eILoZYZylsDDThLaCKY"
+es_cloud_id = ""
+es_username = ""
+es_pw = ""
 
 es = Elasticsearch(cloud_id=es_cloud_id, basic_auth=(es_username, es_pw))
 
 # Appsearch 클라이언트 설정
 client = Client(
-    base_endpoint="lowlaw.ent.ap-northeast-2.aws.elastic-cloud.com/api/as/v1",
-    api_key="private-egnzqo7tt7fd6fngz13mmox9",
+    base_endpoint="",
+    api_key="",
     use_https=True
 )
 
