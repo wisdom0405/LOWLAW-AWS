@@ -5,7 +5,7 @@ engine_name = "prec-content"
 base_url = base_url = "http://lowlaw.ent.ap-northeast-2.aws.elastic-cloud.com/app/enterprise_search/app_search/engines/prec-content/analytics/top_queries"
 
 # API 키 설정
-api_key = "private-egnzqo7tt7fd6fngz13mmox9"
+api_key = ""
 headers = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {api_key}"
