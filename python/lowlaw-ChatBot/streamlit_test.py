@@ -4,9 +4,9 @@ from elasticsearch import Elasticsearch
 from PIL import Image
 import re
 
-es_cloud_id = "lowlaw:YXAtbm9ydGhlYXN0LTIuYXdzLmVsYXN0aWMtY2xvdWQuY29tOjQ0MyQ2YzNmMjA4MmNiMzk0M2YxYTBiZWI0ZDY2M2JmM2VlZCRjZTA2NGZhNjFiMmI0N2Y0ODgzMjY0Y2FlMzVlZDgxZQ=="
-es_username = "elastic"
-es_pw = "LWkW2eILoZYZylsDDThLaCKY"
+es_cloud_id = ""
+es_username = ""
+es_pw = ""
 
 es = Elasticsearch(cloud_id=es_cloud_id, basic_auth=(es_username, es_pw))
 
