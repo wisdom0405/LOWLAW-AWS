@@ -14,9 +14,9 @@ import re
 
 def lambda_handler(event, context):
     # elastic 연결준비
-    es_cloud_id = "lowlaw:YXAtbm9ydGhlYXN0LTIuYXdzLmVsYXN0aWMtY2xvdWQuY29tJDZjM2YyMDgyY2IzOTQzZjFhMGJlYjRkNjYzYmYzZWVkJGNlMDY0ZmE2MWIyYjQ3ZjQ4ODMyNjRjYWUzNWVkODFl"
-    es_user = "elastic"
-    es_pass = "LWkW2eILoZYZylsDDThLaCKY"
+    es_cloud_id = ""
+    es_user = ""
+    es_pass = "Y"
     es = Elasticsearch(
         cloud_id=es_cloud_id,
         basic_auth=(es_user, es_pass),
